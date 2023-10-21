@@ -4,8 +4,8 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <termios.h>
-#define horizontal 120
-#define vertical 40
+#define horizontal 100
+#define vertical 36
 
 void FlushStdin(void) {
   int ch;
@@ -38,7 +38,15 @@ void ClearMatrix(int map[vertical][horizontal]) {
     }
 }
 
-void PrintMap(int map[vertical][horizontal]) {
+int ResetLife(int map[vertical][horizontal], int life){
+    map[vertical/2][horizontal/2] = '@';
+    life--;
+    return life;
+}
+
+void PrintInterface(int map[vertical][horizontal], int life) {
+
+    printf("Life: %d\n\n", life);
     for(int cont = 0;cont < vertical; cont++) {
         for(int cont2 = 0; cont2 < horizontal; cont2++) {
             if(cont == 0 || cont == vertical - 1) map[cont][cont2] = 61;//Equals sign
@@ -50,58 +58,67 @@ void PrintMap(int map[vertical][horizontal]) {
     }
 }
 
-void Movement(int map[vertical][horizontal], int l, int r, int u, int d) {
+int Movement(int map[vertical][horizontal], int left, int right, int up, int down, int life) {
     for(int cont = 0;cont < vertical; cont++) {
         for(int cont2 = 0; cont2 < horizontal; cont2++) {
-            if(l == 1 && map[cont][cont2] == '@' && cont2 - 1 > 0) { 
+            if(left == 1 && map[cont][cont2] == '@') { 
                 map[cont][cont2 - 1] = 64; //64 = @
+                if(map[cont][0] == '@') life = ResetLife(map, life);
                 map[cont][cont2] = 32; //Space
-                l = 0;
+                left = 0;
                 break;
             }
-            else if(r == 1 && map[cont][cont2] == '@' && cont2 + 1 < horizontal - 1) { 
+            else if(right == 1 && map[cont][cont2] == '@') { 
                 map[cont][cont2 + 1] = 64; //64 = @
+                if(map[cont][horizontal - 1] == '@' ) life = ResetLife(map, life);
                 map[cont][cont2] = 32; //Space
-                r = 0;
+                right = 0;
                 break;
             }
-            else if(u == 1 && map[cont][cont2] == '@' && cont - 1 > 0) { 
+            else if(up == 1 && map[cont][cont2] == '@') { 
                 map[cont - 1][cont2] = 64; //64 = @
+                if(map[0][cont2] == '@') life = ResetLife(map, life);
                 map[cont][cont2] = 32; //Space
-                u = 0;
+                up = 0;
                 break;
             }
-            else if(d == 1 && map[cont][cont2] == '@' && cont + 1 < vertical - 1) { 
+            else if(down == 1 && map[cont][cont2] == '@') { 
                 map[cont + 1][cont2] = 64; //64 = @
+                if(map[vertical - 1][cont2] == '@') life = ResetLife(map, life);
                 map[cont][cont2] = 32; //Space
-                d = 0;
+                down = 0;
                 break;
             }
-            if(l == 0 && r == 0 && u == 0 && d == 0) break;
+            if(left == 0 && right == 0 && up == 0 && down == 0) break;
         }
     }
-    PrintMap(map);
+    PrintInterface(map, life);
+    return life;
 }
 
 void Game(){
     int map[vertical][horizontal];
     int cont, cont2;
-    
+    int life = 4;
+
     ClearMatrix(map);
-    map[vertical/2][horizontal/2] = '@';
+    life = ResetLife(map, life);
 
     //Need to Improve
-    int l, r, u, d, input;
-    for (l = 0, r = 0, u = 0, d = 0;;) {
+    for (int left = 0, right = 0, up = 0, down = 0, input = 0;;) {
         system("clear");
-        Movement(map, l, r, u, d);
-        l = 0, r = 0, u = 0, d = 0, input = 0;
+        life = Movement(map, left, right, up, down, life);
+        if(life == 0) break;
+        left = 0, right = 0, up = 0, down = 0, input = 0;
         input = tolower(getch());
-        if(input == 119) u++;
-        if(input == 115) d++; 
-        if(input == 97) l++;
-        if(input == 100) r++;
+        if(input == 119) up++;
+        if(input == 115) down++; 
+        if(input == 97) left++;
+        if(input == 100) right++;
+        if(life == 0) exit;
     }
+    system("clear");
+    printf("Game Over.\n\n");
 }
 
 int main(){
