@@ -4,8 +4,62 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <termios.h>
-#define horizontal 100
-#define vertical 36
+#include <time.h>
+#define horizontal 80
+#define vertical 20
+
+int ResetLife(int map[vertical][horizontal], int *life){
+    map[vertical/2][horizontal/2] = '@';
+    return *life - 1;
+}
+
+int CollisionLeft(int map[vertical][horizontal], int left, int cont, int cont2, int *Life){
+    map[cont][cont2 - 1] = 64; //64 = @
+    if(map[cont][0] == '@'){
+    *Life = ResetLife(map, Life);
+    map[cont][0] = 124;//Vertical Line 
+    }
+    map[cont][cont2] = 32; //Space
+    return left = 0;
+}
+
+int CollisionRight(int map[vertical][horizontal], int right, int cont, int cont2, int *Life){
+    map[cont][cont2 + 1] = 64; //64 = @
+    if(map[cont][horizontal - 1] == '@' ){
+    *Life = ResetLife(map, Life);
+    map[cont][horizontal - 1] = 124;//Vertical Line 
+    }
+    map[cont][cont2] = 32; //Space
+    return right = 0; 
+}
+
+int CollisionUp(int map[vertical][horizontal], int up, int cont, int cont2, int *Life){
+    map[cont - 1][cont2] = 64; //64 = @
+    if(map[0][cont2] == '@'){
+    *Life = ResetLife(map, Life);
+    map[0][cont2] = 61;//Equals sign
+    }
+    map[cont][cont2] = 32; //Space
+    return up = 0;
+}
+
+int CollisionDown(int map[vertical][horizontal], int down, int cont, int cont2, int *Life){
+    map[cont + 1][cont2] = 64; //64 = @
+    if(map[vertical - 1][cont2] == '@'){
+    *Life = ResetLife(map, Life);
+    map[vertical - 1][cont2] = 61;//Equals sign
+    }
+    map[cont][cont2] = 32; //Space
+    return down = 0;
+}
+
+void Food(int map[vertical][horizontal]){ //Implementation Needed
+    srand(time(NULL));
+    int rand1, rand2;
+    rand1 = rand() % vertical - 1;
+    rand2 = rand() % horizontal - 1;
+    map[rand1][rand2] = 42;
+}
 
 void FlushStdin(void) {
   int ch;
@@ -32,82 +86,67 @@ char getch() { //https://stackoverflow.com/questions/421860/capture-characters-f
         return (buf);
 } 
 
-void ClearMatrix(int map[vertical][horizontal]) {
+void ResetMatrix(int map[vertical][horizontal]) {
     for(int cont = 0;cont < vertical; cont++) {
-        for(int cont2 = 0; cont2 < horizontal; cont2++) map[cont][cont2] = 32;
+        for(int cont2 = 0; cont2 < horizontal; cont2++)
+        {
+            if(cont == 0 || cont == vertical - 1) map[cont][cont2] = 61;//Equals sign
+            else if(cont2 == 0 || cont2 == horizontal - 1) map[cont][cont2] = 124;//Vertical Line 
+            else map[cont][cont2] = 32;//Space
+        }
     }
 }
 
-int ResetLife(int map[vertical][horizontal], int life){
-    map[vertical/2][horizontal/2] = '@';
-    life--;
-    return life;
-}
+void PrintInterface(int map[vertical][horizontal], int *life) {
 
-void PrintInterface(int map[vertical][horizontal], int life) {
-
-    printf("Life: %d\n\n", life);
+    printf("Life: %d\n\n", *life);
     for(int cont = 0;cont < vertical; cont++) {
         for(int cont2 = 0; cont2 < horizontal; cont2++) {
-            if(cont == 0 || cont == vertical - 1) map[cont][cont2] = 61;//Equals sign
-            else if(cont2 == 0 || cont2 == horizontal - 1) map[cont][cont2] = 124;//Vertical Line 
-            else if(map[cont][cont2] != '@') map[cont][cont2] = 32;//Space
             printf("%c", map[cont][cont2]);
         }
         printf("\n");
     }
 }
 
-int Movement(int map[vertical][horizontal], int left, int right, int up, int down, int life) {
+void Movement(int map[vertical][horizontal], int left, int right, int up, int down, int *life) {
+
+    //printf("Debug: left: %d, right: %d, up: %d, down; %d\n\n", left, right, up, down);
+    //getchar();
     for(int cont = 0;cont < vertical; cont++) {
         for(int cont2 = 0; cont2 < horizontal; cont2++) {
             if(left == 1 && map[cont][cont2] == '@') { 
-                map[cont][cont2 - 1] = 64; //64 = @
-                if(map[cont][0] == '@') life = ResetLife(map, life);
-                map[cont][cont2] = 32; //Space
-                left = 0;
+                left = CollisionLeft(map, left, cont, cont2, life);
                 break;
             }
             else if(right == 1 && map[cont][cont2] == '@') { 
-                map[cont][cont2 + 1] = 64; //64 = @
-                if(map[cont][horizontal - 1] == '@' ) life = ResetLife(map, life);
-                map[cont][cont2] = 32; //Space
-                right = 0;
+                right = CollisionRight(map, right, cont, cont2, life);
                 break;
             }
             else if(up == 1 && map[cont][cont2] == '@') { 
-                map[cont - 1][cont2] = 64; //64 = @
-                if(map[0][cont2] == '@') life = ResetLife(map, life);
-                map[cont][cont2] = 32; //Space
-                up = 0;
+                up = CollisionUp(map, up, cont, cont2, life);
                 break;
             }
             else if(down == 1 && map[cont][cont2] == '@') { 
-                map[cont + 1][cont2] = 64; //64 = @
-                if(map[vertical - 1][cont2] == '@') life = ResetLife(map, life);
-                map[cont][cont2] = 32; //Space
-                down = 0;
+                down = CollisionDown(map, down, cont, cont2, life);
                 break;
             }
             if(left == 0 && right == 0 && up == 0 && down == 0) break;
         }
     }
+    //Food(map);
     PrintInterface(map, life);
-    return life;
 }
 
 void Game(){
     int map[vertical][horizontal];
     int cont, cont2;
-    int life = 4;
+    int life = 3;
+    ResetMatrix(map);
+    map[vertical/2][horizontal/2] = '@';
 
-    ClearMatrix(map);
-    life = ResetLife(map, life);
-
-    //Need to Improve
     for (int left = 0, right = 0, up = 0, down = 0, input = 0;;) {
         system("clear");
-        life = Movement(map, left, right, up, down, life);
+        Movement(map, left, right, up, down, &life);
         if(life == 0) break;
         left = 0, right = 0, up = 0, down = 0, input = 0;
         input = tolower(getch());
