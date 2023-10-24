@@ -5,8 +5,9 @@
 #include <unistd.h>
 #include <termios.h>
 #include <time.h>
-#define horizontal 80
-#define vertical 20
+#include <stdbool.h>
+#define horizontal 100
+#define vertical 30
 
 int ResetLife(int map[vertical][horizontal], int *life)
 {
@@ -17,13 +18,22 @@ int ResetLife(int map[vertical][horizontal], int *life)
 void Food(int map[vertical][horizontal])
 {
     int rand1, rand2;
+    bool check = false;
     do
     {
-        rand1 = rand() % vertical - 2;
-        rand2 = rand() % horizontal - 2;
+        rand1 = rand() % (vertical - 1);
+        rand2 = rand() % (horizontal - 1);
         if (map[rand1][rand2] != '@' && rand1 != 0 && rand2 != 0)
             map[rand1][rand2] = '*';
-    } while (rand1 == 0 || rand2 == 0);
+
+        for(rand1 = 1; rand1 < vertical; rand1++)
+        {
+            for(rand2 = 1; rand2 < horizontal; rand2++)
+            {
+                if(map[rand1][rand2] == '*') check = true;
+            }
+        }
+    } while (check == false);
 }
 
 int CollisionLeft(int map[vertical][horizontal], int left, int cont, int cont2, int *Life, int *score)
@@ -144,10 +154,10 @@ void ResetMatrix(int map[vertical][horizontal])
     }
 }
 
-void PrintInterface(int map[vertical][horizontal], int *life, int *score)
+void PrintInterface(int map[vertical][horizontal], int life, int score)
 {
 
-    printf("Life: %d\t\tScore: %d\n\n", *life, *score);
+    printf("Life: %d\t\tScore: %d\n\n", life, score);
     for (int cont = 0; cont < vertical; cont++)
     {
         for (int cont2 = 0; cont2 < horizontal; cont2++)
@@ -158,7 +168,7 @@ void PrintInterface(int map[vertical][horizontal], int *life, int *score)
     }
 }
 
-void Movement(int map[vertical][horizontal], int left, int right, int up, int down, int *life, int *score)
+void Movement(int map[vertical][horizontal], int left, int right, int up, int down, int *life, int *score, int *MovCheck)
 {
     for (int cont = 0; cont < vertical; cont++)
     {
@@ -185,17 +195,19 @@ void Movement(int map[vertical][horizontal], int left, int right, int up, int do
                 break;
             }
             if (left == 0 && right == 0 && up == 0 && down == 0)
+            {
+                *MovCheck = 0;
                 break;
+            }
         }
     }
-    PrintInterface(map, life, score);
 }
 
 void Game()
 {
     int map[vertical][horizontal];
     int cont, cont2;
-    int life = 3, score = 0;
+    int life = 3, score = 0, MovCheck = 0;
     ResetMatrix(map);
     map[vertical / 2][horizontal / 2] = '@';
     Food(map);
@@ -203,19 +215,32 @@ void Game()
     for (int left = 0, right = 0, up = 0, down = 0, input = 0;;)
     {
         system("clear");
-        Movement(map, left, right, up, down, &life, &score);
+        Movement(map, left, right, up, down, &life, &score, &MovCheck);
+        PrintInterface(map, life, score);
         if (life == 0)
             break;
         left = 0, right = 0, up = 0, down = 0, input = 0;
         input = tolower(getch());
         if (input == 119)
+        {
             up++;
+            MovCheck = 1;
+        }
         else if (input == 115)
+        {
             down++;
+            MovCheck = 2;
+        }
         else if (input == 97)
+        {
             left++;
+            MovCheck = 3;
+        }
         else if (input == 100)
+        {
             right++;
+            MovCheck = 4;
+        }
     }
     system("clear");
     printf("Game Over.\n\n");
