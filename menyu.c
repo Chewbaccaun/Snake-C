@@ -1,11 +1,14 @@
+#include <unistd.h>
+#include <termios.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <unistd.h>
-#include <termios.h>
-#include <time.h>
 #include <stdbool.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <time.h>
+#include "lib.h"
 #define horizontal 100
 #define vertical 30
 
@@ -36,7 +39,7 @@ void Food(int map[vertical][horizontal])
     } while (check == false);
 }
 
-int CollisionLeft(int map[vertical][horizontal], int left, int cont, int cont2, int *Life, int *score)
+void CollisionLeft(int map[vertical][horizontal], int left, int cont, int cont2, int *Life, int *score)
 {
     if (map[cont][cont2 - 1] == '*')
     {
@@ -52,10 +55,9 @@ int CollisionLeft(int map[vertical][horizontal], int left, int cont, int cont2, 
         map[cont][0] = '|'; 
     }
     map[cont][cont2] = ' ';
-    return left = 0;
 }
 
-int CollisionRight(int map[vertical][horizontal], int right, int cont, int cont2, int *Life, int *score)
+void CollisionRight(int map[vertical][horizontal], int right, int cont, int cont2, int *Life, int *score)
 {
     if (map[cont][cont2 + 1] == '*')
     {
@@ -71,10 +73,9 @@ int CollisionRight(int map[vertical][horizontal], int right, int cont, int cont2
         map[cont][horizontal - 1] = '|';
     }
     map[cont][cont2] = ' ';
-    return right = 0;
 }
 
-int CollisionUp(int map[vertical][horizontal], int up, int cont, int cont2, int *Life, int *score)
+void CollisionUp(int map[vertical][horizontal], int up, int cont, int cont2, int *Life, int *score)
 {
     if (map[cont - 1][cont2] == '*')
     {
@@ -89,10 +90,9 @@ int CollisionUp(int map[vertical][horizontal], int up, int cont, int cont2, int 
         map[0][cont2] = '=';
     }
     map[cont][cont2] = ' ';
-    return up = 0;
 }
 
-int CollisionDown(int map[vertical][horizontal], int down, int cont, int cont2, int *Life, int *score)
+void CollisionDown(int map[vertical][horizontal], int down, int cont, int cont2, int *Life, int *score)
 {
     if (map[cont + 1][cont2] == '*')
     {
@@ -107,35 +107,6 @@ int CollisionDown(int map[vertical][horizontal], int down, int cont, int cont2, 
         map[vertical - 1][cont2] = '=';
     }
     map[cont][cont2] = ' ';
-    return down = 0;
-}
-
-void FlushStdin(void)
-{
-    int ch;
-    while (((ch = getchar()) != '\n') && (ch != EOF))
-        ;
-}
-
-char getch()
-{ // https://stackoverflow.com/questions/421860/capture-characters-from-standard-input-without-waiting-for-enter-to-be-pressed
-    char buf = 0;
-    struct termios old = {0};
-    if (tcgetattr(0, &old) < 0)
-        perror("tcsetattr()");
-    old.c_lflag &= ~ICANON;
-    old.c_lflag &= ~ECHO;
-    old.c_cc[VMIN] = 1;
-    old.c_cc[VTIME] = 0;
-    if (tcsetattr(0, TCSANOW, &old) < 0)
-        perror("tcsetattr ICANON");
-    if (read(0, &buf, 1) < 0)
-        perror("read()");
-    old.c_lflag |= ICANON;
-    old.c_lflag |= ECHO;
-    if (tcsetattr(0, TCSADRAIN, &old) < 0)
-        perror("tcsetattr ~ICANON");
-    return (buf);
 }
 
 void ResetMatrix(int map[vertical][horizontal])
@@ -156,7 +127,7 @@ void ResetMatrix(int map[vertical][horizontal])
 
 void PrintInterface(int map[vertical][horizontal], int life, int score)
 {
-
+    fflush(stdout);
     printf("Life: %d\t\tScore: %d\n\n", life, score);
     for (int cont = 0; cont < vertical; cont++)
     {
@@ -168,7 +139,7 @@ void PrintInterface(int map[vertical][horizontal], int life, int score)
     }
 }
 
-void Movement(int map[vertical][horizontal], int left, int right, int up, int down, int *life, int *score, int *MovCheck)
+void Movement(int map[vertical][horizontal], int left, int right, int up, int down, int *life, int *score)
 {
     for (int cont = 0; cont < vertical; cont++)
     {
@@ -176,27 +147,22 @@ void Movement(int map[vertical][horizontal], int left, int right, int up, int do
         {
             if (left == 1 && map[cont][cont2] == '@')
             {
-                left = CollisionLeft(map, left, cont, cont2, life, score);
+                CollisionLeft(map, left, cont, cont2, life, score);
                 break;
             }
             else if (right == 1 && map[cont][cont2] == '@')
             {
-                right = CollisionRight(map, right, cont, cont2, life, score);
+                CollisionRight(map, right, cont, cont2, life, score);
                 break;
             }
             else if (up == 1 && map[cont][cont2] == '@')
             {
-                up = CollisionUp(map, up, cont, cont2, life, score);
+                CollisionUp(map, up, cont, cont2, life, score);
                 break;
             }
             else if (down == 1 && map[cont][cont2] == '@')
             {
-                down = CollisionDown(map, down, cont, cont2, life, score);
-                break;
-            }
-            if (left == 0 && right == 0 && up == 0 && down == 0)
-            {
-                *MovCheck = 0;
+                CollisionDown(map, down, cont, cont2, life, score);
                 break;
             }
         }
@@ -206,41 +172,41 @@ void Movement(int map[vertical][horizontal], int left, int right, int up, int do
 void Game()
 {
     int map[vertical][horizontal];
-    int cont, cont2;
-    int life = 3, score = 0, MovCheck = 0;
+    int cont, cont2, left, right = 1, up = 0, down = 0;
+    int life = 3, score = 0, input = 0;
     ResetMatrix(map);
     map[vertical / 2][horizontal / 2] = '@';
     Food(map);
 
-    for (int left = 0, right = 0, up = 0, down = 0, input = 0;;)
+    for (;;)
     {
         system("clear");
-        Movement(map, left, right, up, down, &life, &score, &MovCheck);
+        Movement(map, left, right, up, down, &life, &score);
         PrintInterface(map, life, score);
-        if (life == 0)
-            break;
-        left = 0, right = 0, up = 0, down = 0, input = 0;
-        input = tolower(getch());
-        if (input == 119)
+        //if (life == 0)
+            //break;
+        input = getch();     
+        if (input == 'w' || input == 'W')
         {
             up++;
-            MovCheck = 1;
+            left = 0, right = 0, down = 0, input = 0;
         }
-        else if (input == 115)
+        else if (input == 's' || input == 'S')
         {
             down++;
-            MovCheck = 2;
+            left = 0, right = 0, up = 0, input = 0;
         }
-        else if (input == 97)
+        else if (input == 'a' || input == 'A')
         {
             left++;
-            MovCheck = 3;
+            right = 0, up = 0, down = 0, input = 0;
         }
-        else if (input == 100)
+        else if (input == 'd' || input == 'D')
         {
             right++;
-            MovCheck = 4;
+            left = 0, up = 0, down = 0, input = 0;
         }
+        usleep(50000);
     }
     system("clear");
     printf("Game Over.\n\n");
