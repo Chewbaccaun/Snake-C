@@ -5,6 +5,8 @@
 #include <ctype.h>
 #include <fcntl.h>
 #include <termios.h>
+#include <stdbool.h>
+#include <time.h>
 
 void FlushStdin(void) {
   int ch;
