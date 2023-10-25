@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <time.h>
 
+
 void FlushStdin(void) {
   int ch;
   while(((ch = getchar()) !='\n') && (ch != EOF));
