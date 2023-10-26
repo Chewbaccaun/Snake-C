@@ -2,10 +2,10 @@
 #define horizontal 100
 #define vertical 30
 
-int ResetLife(int map[vertical][horizontal], int *life)
+void ResetLife(int map[vertical][horizontal], int *life)
 {
     map[vertical / 2][horizontal / 2] = '@';
-    return *life - 1;
+    --*life;
 }
 
 void Food(int map[vertical][horizontal])
@@ -30,74 +30,109 @@ void Food(int map[vertical][horizontal])
     } while (check == false);
 }
 
-void CollisionLeft(int map[vertical][horizontal], int left, int cont, int cont2, int *Life, int *score)
+void CollisionUp(int map[vertical][horizontal], int *x, int *y, int *Life, int *score)
 {
-    if (map[cont][cont2 - 1] == '*')
+    if (map[*y - 1][*x] == ' ')
     {
-        map[cont][cont2 - 1] = '@';
+        map[*y - 1][*x] = '@';
+        map[*y][*x] = ' ';
+        --*y;
+    }
+    else if (map[*y - 1][*x] == '*')
+    {
+        map[*y - 1][*x] = '@';
         Food(map);
         ++*score;
+        map[*y][*x] = ' ';
+        --*y;
     }
-    else
-        map[cont][cont2 - 1] = '@';
-    if (map[cont][0] == '@')
+    else if (map[*y - 1][*x] == '=')
     {
-        *Life = ResetLife(map, Life);
-        map[cont][0] = '|';
+        ResetLife(map, Life);
+        map[*y][*x] = ' ';
+        map[vertical / 2][horizontal / 2] = '@';
+        *x = horizontal / 2;
+        *y = vertical / 2;
     }
-    map[cont][cont2] = ' ';
 }
 
-void CollisionRight(int map[vertical][horizontal], int right, int cont, int cont2, int *Life, int *score)
+void CollisionDown(int map[vertical][horizontal], int *x, int *y, int *Life, int *score)
 {
-    if (map[cont][cont2 + 1] == '*')
+    if (map[*y + 1][*x] == ' ')
     {
-        map[cont][cont2 + 1] = '@';
+        map[*y + 1][*x] = '@';
+        map[*y][*x] = ' ';
+        ++*y;
+    }
+    else if (map[*y + 1][*x] == '*')
+    {
+        map[*y + 1][*x] = '@';
         Food(map);
         ++*score;
+        map[*y][*x] = ' ';
+        ++*y;
     }
-    else
-        map[cont][cont2 + 1] = '@';
-    if (map[cont][horizontal - 1] == '@')
+    else if (map[*y + 1][*x] == '=')
     {
-        *Life = ResetLife(map, Life);
-        map[cont][horizontal - 1] = '|';
+        ResetLife(map, Life);
+        map[*y][*x] = ' ';
+        map[vertical / 2][horizontal / 2] = '@';
+        *x = horizontal / 2;
+        *y = vertical / 2;
     }
-    map[cont][cont2] = ' ';
 }
 
-void CollisionUp(int map[vertical][horizontal], int up, int cont, int cont2, int *Life, int *score)
+void CollisionLeft(int map[vertical][horizontal], int *x, int *y, int *Life, int *score)
 {
-    if (map[cont - 1][cont2] == '*')
+    if (map[*y][*x - 1] == ' ')
     {
-        map[cont - 1][cont2] = '@';
+        map[*y][*x - 1] = '@';
+        map[*y][*x] = ' ';
+        --*x;
+    }
+    else if (map[*y][*x - 1] == '*')
+    {
+        map[*y][*x - 1] = '@';
         Food(map);
         ++*score;
+        map[*y][*x] = ' ';
+        --*x;
     }
-    map[cont - 1][cont2] = '@';
-    if (map[0][cont2] == '@')
+    else if (map[*y][*x - 1] == '|')
     {
-        *Life = ResetLife(map, Life);
-        map[0][cont2] = '=';
+        ResetLife(map, Life);
+        map[*y][*x - 1] = '|';
+        map[*y][*x] = ' ';
+        map[vertical / 2][horizontal / 2] = '@';
+        *x = horizontal / 2;
+        *y = vertical / 2;
     }
-    map[cont][cont2] = ' ';
 }
 
-void CollisionDown(int map[vertical][horizontal], int down, int cont, int cont2, int *Life, int *score)
+void CollisionRight(int map[vertical][horizontal], int *x, int *y, int *Life, int *score)
 {
-    if (map[cont + 1][cont2] == '*')
+    if (map[*y][*x + 1] == ' ')
     {
-        map[cont + 1][cont2] = '@';
+        map[*y][*x + 1] = '@';
+        map[*y][*x] = ' ';
+        ++*x;
+    }
+    else if (map[*y][*x + 1] == '*')
+    {
+        map[*y][*x + 1] = '@';
         Food(map);
         ++*score;
+        map[*y][*x] = ' ';
+        ++*x;
     }
-    map[cont + 1][cont2] = '@';
-    if (map[vertical - 1][cont2] == '@')
+    else if (map[*y][*x + 1] == '|')
     {
-        *Life = ResetLife(map, Life);
-        map[vertical - 1][cont2] = '=';
+        ResetLife(map, Life);
+        map[*y][*x] = ' ';
+        map[vertical / 2][horizontal / 2] = '@';
+        *x = horizontal / 2;
+        *y = vertical / 2;
     }
-    map[cont][cont2] = ' ';
 }
 
 void ResetMatrix(int map[vertical][horizontal])
@@ -130,84 +165,46 @@ void PrintInterface(int map[vertical][horizontal], int life, int score)
     }
 }
 
-void Movement(int map[vertical][horizontal], int left, int right, int up, int down, int *life, int *score)
-{
-    if (down == 1)
-    {
-        for (int cont = vertical - 1; cont > 0; cont--)
-        {
-            for (int cont2 = horizontal - 1; cont2 > 0; cont2--)
-            {
-                if (map[cont][cont2] == '@')
-                {
-                    CollisionDown(map, down, cont, cont2, life, score);
-                    break;
-                }
-            }
-        }
-    }
-    else
-    {
-        for (int cont = 0; cont < vertical; cont++)
-        {
-            for (int cont2 = 0; cont2 < horizontal; cont2++)
-            {
-                if (left == 1 && map[cont][cont2] == '@')
-                {
-                    CollisionLeft(map, left, cont, cont2, life, score);
-                    break;
-                }
-                else if (right == 1 && map[cont][cont2] == '@')
-                {
-                    CollisionRight(map, right, cont, cont2, life, score);
-                    break;
-                }
-                else if (up == 1 && map[cont][cont2] == '@')
-                {
-                    CollisionUp(map, up, cont, cont2, life, score);
-                    break;
-                }
-            }
-        }
-    }
-}
-
 void Game()
 {
     int map[vertical][horizontal];
-    int cont, cont2, left, right = 1, up = 0, down = 0;
-    int life = 3, score = 0, input = 0;
     ResetMatrix(map);
-    map[vertical / 2][horizontal / 2] = '@';
     Food(map);
-
+    map[vertical / 2][horizontal / 2] = '@';
+    int x = horizontal / 2;
+    int y = vertical / 2;
+    int life = 3, score = 0, input, lim = 4;
     for (;;)
     {
         system("clear");
-        Movement(map, left, right, up, down, &life, &score);
         PrintInterface(map, life, score);
-        if (life == 0)
-            break;
-        input = getch();
-        if (input == 'w' || input == 'W')
+
+        // if (life == 0)
+        // break;
+        input = tolower(getch());
+        if (input == 'w')
+            lim = 1;
+        else if (input == 'a')
+            lim = 2;
+        if (input == 's')
+            lim = 3;
+        else if (input == 'd')
+            lim = 4;
+        if (input == 'w' || lim == 1)
         {
-            up++;
-            left = 0, right = 0, down = 0, input = 0;
+            CollisionUp(map, &x, &y, &life, &score);
         }
-        else if (input == 's' || input == 'S')
+        else if (input == 'a' || lim == 2)
         {
-            down++;
-            left = 0, right = 0, up = 0, input = 0;
+            CollisionLeft(map, &x, &y, &life, &score);
         }
-        else if (input == 'a' || input == 'A')
+        else if (input == 's' || lim == 3)
         {
-            left++;
-            right = 0, up = 0, down = 0, input = 0;
+            CollisionDown(map, &x, &y, &life, &score);
         }
-        else if (input == 'd' || input == 'D')
+        else if (input == 'd' || lim == 4)
         {
-            right++;
-            left = 0, up = 0, down = 0, input = 0;
+            CollisionRight(map, &x, &y, &life, &score);
         }
         usleep(50000);
     }
