@@ -1,13 +1,3 @@
-#include <unistd.h>
-#include <termios.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdbool.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <time.h>
 #include "lib.h"
 #define horizontal 100
 #define vertical 30
@@ -29,11 +19,12 @@ void Food(int map[vertical][horizontal])
         if (map[rand1][rand2] != '@' && rand1 != 0 && rand2 != 0)
             map[rand1][rand2] = '*';
 
-        for(rand1 = 1; rand1 < vertical; rand1++)
+        for (rand1 = 1; rand1 < vertical; rand1++)
         {
-            for(rand2 = 1; rand2 < horizontal; rand2++)
+            for (rand2 = 1; rand2 < horizontal; rand2++)
             {
-                if(map[rand1][rand2] == '*') check = true;
+                if (map[rand1][rand2] == '*')
+                    check = true;
             }
         }
     } while (check == false);
@@ -52,7 +43,7 @@ void CollisionLeft(int map[vertical][horizontal], int left, int cont, int cont2,
     if (map[cont][0] == '@')
     {
         *Life = ResetLife(map, Life);
-        map[cont][0] = '|'; 
+        map[cont][0] = '|';
     }
     map[cont][cont2] = ' ';
 }
@@ -141,29 +132,41 @@ void PrintInterface(int map[vertical][horizontal], int life, int score)
 
 void Movement(int map[vertical][horizontal], int left, int right, int up, int down, int *life, int *score)
 {
-    for (int cont = 0; cont < vertical; cont++)
+    if (down == 1)
     {
-        for (int cont2 = 0; cont2 < horizontal; cont2++)
+        for (int cont = vertical - 1; cont > 0; cont--)
         {
-            if (left == 1 && map[cont][cont2] == '@')
+            for (int cont2 = horizontal - 1; cont2 > 0; cont2--)
             {
-                CollisionLeft(map, left, cont, cont2, life, score);
-                break;
+                if (map[cont][cont2] == '@')
+                {
+                    CollisionDown(map, down, cont, cont2, life, score);
+                    break;
+                }
             }
-            else if (right == 1 && map[cont][cont2] == '@')
+        }
+    }
+    else
+    {
+        for (int cont = 0; cont < vertical; cont++)
+        {
+            for (int cont2 = 0; cont2 < horizontal; cont2++)
             {
-                CollisionRight(map, right, cont, cont2, life, score);
-                break;
-            }
-            else if (up == 1 && map[cont][cont2] == '@')
-            {
-                CollisionUp(map, up, cont, cont2, life, score);
-                break;
-            }
-            else if (down == 1 && map[cont][cont2] == '@')
-            {
-                CollisionDown(map, down, cont, cont2, life, score);
-                break;
+                if (left == 1 && map[cont][cont2] == '@')
+                {
+                    CollisionLeft(map, left, cont, cont2, life, score);
+                    break;
+                }
+                else if (right == 1 && map[cont][cont2] == '@')
+                {
+                    CollisionRight(map, right, cont, cont2, life, score);
+                    break;
+                }
+                else if (up == 1 && map[cont][cont2] == '@')
+                {
+                    CollisionUp(map, up, cont, cont2, life, score);
+                    break;
+                }
             }
         }
     }
@@ -183,9 +186,9 @@ void Game()
         system("clear");
         Movement(map, left, right, up, down, &life, &score);
         PrintInterface(map, life, score);
-        //if (life == 0)
-            //break;
-        input = getch();     
+        if (life == 0)
+            break;
+        input = getch();
         if (input == 'w' || input == 'W')
         {
             up++;
