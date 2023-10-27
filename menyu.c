@@ -2,13 +2,13 @@
 #define horizontal 100
 #define vertical 30
 
-void ResetLife(int map[vertical][horizontal], int *life)
+void DecreaseLife(int map[vertical][horizontal], int *life)
 {
     map[vertical / 2][horizontal / 2] = '@';
     --*life;
 }
 
-void Food(int map[vertical][horizontal])
+void CreateFood(int map[vertical][horizontal])
 {
     int rand1, rand2;
     bool check = false;
@@ -41,14 +41,14 @@ void CollisionUp(int map[vertical][horizontal], int *x, int *y, int *Life, int *
     else if (map[*y - 1][*x] == '*')
     {
         map[*y - 1][*x] = '@';
-        Food(map);
+        CreateFood(map);
         ++*score;
         map[*y][*x] = ' ';
         --*y;
     }
     else if (map[*y - 1][*x] == '=')
     {
-        ResetLife(map, Life);
+        DecreaseLife(map, Life);
         map[*y][*x] = ' ';
         map[vertical / 2][horizontal / 2] = '@';
         *x = horizontal / 2;
@@ -67,14 +67,14 @@ void CollisionDown(int map[vertical][horizontal], int *x, int *y, int *Life, int
     else if (map[*y + 1][*x] == '*')
     {
         map[*y + 1][*x] = '@';
-        Food(map);
+        CreateFood(map);
         ++*score;
         map[*y][*x] = ' ';
         ++*y;
     }
     else if (map[*y + 1][*x] == '=')
     {
-        ResetLife(map, Life);
+        DecreaseLife(map, Life);
         map[*y][*x] = ' ';
         map[vertical / 2][horizontal / 2] = '@';
         *x = horizontal / 2;
@@ -93,14 +93,14 @@ void CollisionLeft(int map[vertical][horizontal], int *x, int *y, int *Life, int
     else if (map[*y][*x - 1] == '*')
     {
         map[*y][*x - 1] = '@';
-        Food(map);
+        CreateFood(map);
         ++*score;
         map[*y][*x] = ' ';
         --*x;
     }
     else if (map[*y][*x - 1] == '|')
     {
-        ResetLife(map, Life);
+        DecreaseLife(map, Life);
         map[*y][*x - 1] = '|';
         map[*y][*x] = ' ';
         map[vertical / 2][horizontal / 2] = '@';
@@ -120,14 +120,14 @@ void CollisionRight(int map[vertical][horizontal], int *x, int *y, int *Life, in
     else if (map[*y][*x + 1] == '*')
     {
         map[*y][*x + 1] = '@';
-        Food(map);
+        CreateFood(map);
         ++*score;
         map[*y][*x] = ' ';
         ++*x;
     }
     else if (map[*y][*x + 1] == '|')
     {
-        ResetLife(map, Life);
+        DecreaseLife(map, Life);
         map[*y][*x] = ' ';
         map[vertical / 2][horizontal / 2] = '@';
         *x = horizontal / 2;
@@ -135,7 +135,7 @@ void CollisionRight(int map[vertical][horizontal], int *x, int *y, int *Life, in
     }
 }
 
-void ResetMatrix(int map[vertical][horizontal])
+void FillMatrix(int map[vertical][horizontal])
 {
     for (int cont = 0; cont < vertical; cont++)
     {
@@ -165,47 +165,46 @@ void PrintInterface(int map[vertical][horizontal], int life, int score)
     }
 }
 
+void Input(int map[vertical][horizontal], int *x, int *y, int *life, int *score, int *lim, int *speed)
+{
+    short int input;
+    input = tolower(getch());
+    if (input == 'w' || input == 'a' || input == 's' || input == 'd')
+        *lim = input;
+    if (*lim == 'w')
+    {
+        CollisionUp(map, x, y, life, score);
+    }
+    else if (*lim == 'a')
+    {
+        CollisionLeft(map, x, y, life, score);
+    }
+    else if (*lim == 's')
+    {
+        CollisionDown(map, x, y, life, score);
+    }
+    else if (*lim == 'd')
+    {
+        CollisionRight(map, x, y, life, score);
+    }
+}
+
 void Game()
 {
     int map[vertical][horizontal];
-    ResetMatrix(map);
-    Food(map);
+    FillMatrix(map);
+    CreateFood(map);
     map[vertical / 2][horizontal / 2] = '@';
     int x = horizontal / 2;
     int y = vertical / 2;
-    int life = 3, score = 0, input, lim = 4;
+    int life = 3, score = 0, lim = 'w', speed = 50000;
     for (;;)
     {
         system("clear");
         PrintInterface(map, life, score);
-
+        Input(map, &x, &y, &life, &score, &lim, &speed);
         // if (life == 0)
         // break;
-        input = tolower(getch());
-        if (input == 'w')
-            lim = 1;
-        else if (input == 'a')
-            lim = 2;
-        if (input == 's')
-            lim = 3;
-        else if (input == 'd')
-            lim = 4;
-        if (input == 'w' || lim == 1)
-        {
-            CollisionUp(map, &x, &y, &life, &score);
-        }
-        else if (input == 'a' || lim == 2)
-        {
-            CollisionLeft(map, &x, &y, &life, &score);
-        }
-        else if (input == 's' || lim == 3)
-        {
-            CollisionDown(map, &x, &y, &life, &score);
-        }
-        else if (input == 'd' || lim == 4)
-        {
-            CollisionRight(map, &x, &y, &life, &score);
-        }
         usleep(50000);
     }
     system("clear");
