@@ -1,10 +1,12 @@
 #include "lib.h"
 #define horizontal 100
 #define vertical 30
+int xx, yy, sore = 1;
+bool come;
 
 void DecreaseLife(int map[vertical][horizontal], int *life)
 {
-    map[vertical / 2][horizontal / 2] = '@';
+    map[vertical / 2][horizontal / 2] = 'o';
     --*life;
 }
 
@@ -16,7 +18,7 @@ void CreateFood(int map[vertical][horizontal])
     {
         rand1 = rand() % (vertical - 1);
         rand2 = rand() % (horizontal - 1);
-        if (map[rand1][rand2] != '@' && rand1 != 0 && rand2 != 0)
+        if (map[rand1][rand2] == ' ' && rand1 != 0 && rand2 != 0)
             map[rand1][rand2] = '*';
 
         for (rand1 = 1; rand1 < vertical; rand1++)
@@ -30,116 +32,12 @@ void CreateFood(int map[vertical][horizontal])
     } while (check == false);
 }
 
-void CollisionUp(int map[vertical][horizontal], int *x, int *y, int *Life, int *score)
+void FillMatrix(int map[vertical][horizontal], int *score)
 {
-    if (map[*y - 1][*x] == ' ')
+    *score = 0;
+    for (short int cont = 0; cont < vertical; cont++)
     {
-        map[*y - 1][*x] = '@';
-        map[*y][*x] = ' ';
-        --*y;
-    }
-    else if (map[*y - 1][*x] == '*')
-    {
-        map[*y - 1][*x] = '@';
-        CreateFood(map);
-        ++*score;
-        map[*y][*x] = ' ';
-        --*y;
-    }
-    else if (map[*y - 1][*x] == '=')
-    {
-        DecreaseLife(map, Life);
-        map[*y][*x] = ' ';
-        map[vertical / 2][horizontal / 2] = '@';
-        *x = horizontal / 2;
-        *y = vertical / 2;
-    }
-}
-
-void CollisionDown(int map[vertical][horizontal], int *x, int *y, int *Life, int *score)
-{
-    if (map[*y + 1][*x] == ' ')
-    {
-        map[*y + 1][*x] = '@';
-        map[*y][*x] = ' ';
-        ++*y;
-    }
-    else if (map[*y + 1][*x] == '*')
-    {
-        map[*y + 1][*x] = '@';
-        CreateFood(map);
-        ++*score;
-        map[*y][*x] = ' ';
-        ++*y;
-    }
-    else if (map[*y + 1][*x] == '=')
-    {
-        DecreaseLife(map, Life);
-        map[*y][*x] = ' ';
-        map[vertical / 2][horizontal / 2] = '@';
-        *x = horizontal / 2;
-        *y = vertical / 2;
-    }
-}
-
-void CollisionLeft(int map[vertical][horizontal], int *x, int *y, int *Life, int *score)
-{
-    if (map[*y][*x - 1] == ' ')
-    {
-        map[*y][*x - 1] = '@';
-        map[*y][*x] = ' ';
-        --*x;
-    }
-    else if (map[*y][*x - 1] == '*')
-    {
-        map[*y][*x - 1] = '@';
-        CreateFood(map);
-        ++*score;
-        map[*y][*x] = ' ';
-        --*x;
-    }
-    else if (map[*y][*x - 1] == '|')
-    {
-        DecreaseLife(map, Life);
-        map[*y][*x - 1] = '|';
-        map[*y][*x] = ' ';
-        map[vertical / 2][horizontal / 2] = '@';
-        *x = horizontal / 2;
-        *y = vertical / 2;
-    }
-}
-
-void CollisionRight(int map[vertical][horizontal], int *x, int *y, int *Life, int *score)
-{
-    if (map[*y][*x + 1] == ' ')
-    {
-        map[*y][*x + 1] = '@';
-        map[*y][*x] = ' ';
-        ++*x;
-    }
-    else if (map[*y][*x + 1] == '*')
-    {
-        map[*y][*x + 1] = '@';
-        CreateFood(map);
-        ++*score;
-        map[*y][*x] = ' ';
-        ++*x;
-    }
-    else if (map[*y][*x + 1] == '|')
-    {
-        DecreaseLife(map, Life);
-        map[*y][*x] = ' ';
-        map[vertical / 2][horizontal / 2] = '@';
-        *x = horizontal / 2;
-        *y = vertical / 2;
-    }
-}
-
-void FillMatrix(int map[vertical][horizontal])
-{
-    for (int cont = 0; cont < vertical; cont++)
-    {
-        for (int cont2 = 0; cont2 < horizontal; cont2++)
+        for (short int cont2 = 0; cont2 < horizontal; cont2++)
         {
             if (cont == 0 || cont == vertical - 1)
                 map[cont][cont2] = '=';
@@ -148,6 +46,150 @@ void FillMatrix(int map[vertical][horizontal])
             else
                 map[cont][cont2] = ' ';
         }
+    }
+    CreateFood(map);
+}
+
+void SnakeBody(int map[vertical][horizontal], int *x, int *y, int *score)
+{
+
+}
+
+void CollisionUp(int map[vertical][horizontal], int *x, int *y, int *Life, int *score)
+{
+    switch (map[*y - 1][*x])
+    {
+    case ' ':
+        come = false;
+        map[*y - 1][*x] = '^';
+        map[*y][*x] = ' ';
+        SnakeBody(map, x, y, score);
+        --*y;
+        break;
+
+    case '*':
+    come = true;
+        map[*y - 1][*x] = '^';
+        map[*y][*x] = ' ';
+        CreateFood(map);
+        xx = *x;
+        yy = *y;
+        ++*score;
+        SnakeBody(map, x, y, score);
+        --*y;
+        break;
+
+    default:
+        DecreaseLife(map, Life);
+        map[vertical / 2][horizontal / 2] = '^';
+        *x = horizontal / 2;
+        *y = vertical / 2;
+        FillMatrix(map, score);
+        break;
+    }
+}
+
+void CollisionDown(int map[vertical][horizontal], int *x, int *y, int *Life, int *score)
+{
+    switch (map[*y + 1][*x])
+    {
+    case ' ':
+    come = false;
+        map[*y + 1][*x] = 'v';
+        map[*y][*x] = ' ';
+        SnakeBody(map, x, y, score);
+        ++*y;
+        break;
+
+    case '*':
+    come = true;
+        map[*y + 1][*x] = 'v';
+        map[*y][*x] = ' ';
+        CreateFood(map);
+        xx = *x;
+        yy = *y;
+        ++*score;
+        SnakeBody(map, x, y, score);
+        ++*y;
+        break;
+
+    default:
+        DecreaseLife(map, Life);
+        map[vertical / 2][horizontal / 2] = 'v';
+        *x = horizontal / 2;
+        *y = vertical / 2;
+        FillMatrix(map, score);
+        break;
+    }
+}
+
+void CollisionLeft(int map[vertical][horizontal], int *x, int *y, int *Life, int *score)
+{
+    switch (map[*y][*x - 1])
+    {
+    case ' ':
+    come = false;
+        map[*y][*x - 1] = '<';
+        map[*y][*x] = ' ';
+        SnakeBody(map, x, y, score);
+        --*x;
+        break;
+
+    case '*':
+    come = true;
+        map[*y][*x - 1] = '<';
+        map[*y][*x] = ' ';
+        CreateFood(map);
+        xx = *x;
+        yy = *y;
+        ++*score;
+        SnakeBody(map, x, y, score);
+        --*x;
+        break;
+
+    default:
+        DecreaseLife(map, Life);
+        map[*y][*x - 1] = '|';
+        map[vertical / 2][horizontal / 2] = '<';
+        *x = horizontal / 2;
+        *y = vertical / 2;
+        FillMatrix(map, score);
+        break;
+    }
+}
+
+void CollisionRight(int map[vertical][horizontal], int *x, int *y, int *Life, int *score)
+{
+    switch (map[*y][*x + 1])
+    {
+    case ' ':
+    come = false;
+        map[*y][*x + 1] = '>';
+        map[*y][*x] = ' ';
+        SnakeBody(map, x, y, score);
+        ++*x;
+        break;
+
+    case '*':
+    come = true;
+        map[*y][*x + 1] = '>';
+        map[*y][*x] = ' ';
+        CreateFood(map);
+        xx = *x;
+        yy = *y;
+        ++*score;
+        SnakeBody(map, x, y, score);
+        ++*x;
+        break;
+
+    default:
+        DecreaseLife(map, Life);
+        map[*y][*x - 1] = '|';
+        map[vertical / 2][horizontal / 2] = '<';
+        *x = horizontal / 2;
+        *y = vertical / 2;
+        FillMatrix(map, score);
+        break;
     }
 }
 
@@ -165,47 +207,56 @@ void PrintInterface(int map[vertical][horizontal], int life, int score)
     }
 }
 
-void Input(int map[vertical][horizontal], int *x, int *y, int *life, int *score, int *lim, int *speed)
+void Input(int map[vertical][horizontal], int *x, int *y, int *life, int *score, int *lim, int *buffer)
 {
     short int input;
     input = tolower(getch());
     if (input == 'w' || input == 'a' || input == 's' || input == 'd')
+    {
+        *buffer = *lim;
         *lim = input;
-    if (*lim == 'w')
+    }
+    if (*lim == 'w' && *buffer != 's')
     {
         CollisionUp(map, x, y, life, score);
+        usleep(200000 - (*score * 1000));
     }
-    else if (*lim == 'a')
+    else if (*lim == 'a' && *buffer != 'd')
     {
         CollisionLeft(map, x, y, life, score);
+        usleep(160000 - (*score * 1000));
     }
-    else if (*lim == 's')
+    else if (*lim == 's' && *buffer != 'w')
     {
         CollisionDown(map, x, y, life, score);
+        usleep(200000 - (*score * 1000));
     }
-    else if (*lim == 'd')
+    else if (*lim == 'd' && *buffer != 'a')
     {
         CollisionRight(map, x, y, life, score);
+        usleep(160000 - (*score * 1000));
+    }
+    else
+    {
+        *lim = *buffer;
     }
 }
 
 void Game()
 {
     int map[vertical][horizontal];
-    FillMatrix(map);
-    CreateFood(map);
-    map[vertical / 2][horizontal / 2] = '@';
     int x = horizontal / 2;
     int y = vertical / 2;
-    int life = 3, score = 0, lim = 'w', speed = 50000;
+    int life = 3, score, lim = 'd', buffer = 50000;
+    FillMatrix(map, &score);
+    map[vertical / 2][horizontal / 2] = '>';
     for (;;)
     {
         system("clear");
         PrintInterface(map, life, score);
-        Input(map, &x, &y, &life, &score, &lim, &speed);
-        // if (life == 0)
-        // break;
-        usleep(50000);
+        Input(map, &x, &y, &life, &score, &lim, &buffer);
+        if (life == 0)
+        break;
     }
     system("clear");
     printf("Game Over.\n\n");
@@ -215,20 +266,17 @@ int main()
 {
     srand(time(NULL));
     char op;
-    printf("Snake Game\n\n2. Start the Game\n1. Credits\n0. Exit\n\n");
+    printf("Snake Game\n\n1. Start the Game\nAny other. Exit\n\n");
 
-    op = getchar();
-    if (op == '0')
-        return 0;
-    else if (op == '1')
+    switch (op = getchar())
     {
-        system("clear");
-        printf("Gustavo Silva.\nStack Overflow Geniuses.\n\n");
-    }
-    else if (op == '2')
-    {
+    case '1':
         system("clear");
         Game();
+        break;
+    default:
+        printf("Exiting.");
+        break;
     }
     return 0;
 }
