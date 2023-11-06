@@ -1,18 +1,16 @@
 #include "lib.h"
-#define horizontal 100
-#define vertical 30
-int body[horizontal][horizontal];
-int xx[horizontal], yy[horizontal];
-
-void DecreaseLife(int map[vertical][horizontal], int *life)
+#define horizontal 18
+#define vertical 18
+void DecreaseLife(int map[vertical][horizontal], int *life, int *lim)
 {
     map[vertical / 2][horizontal / 2] = 'o';
     --*life;
+    *lim = 'd';
 }
 
 void CreateFood(int map[vertical][horizontal])
 {
-    int rand1, rand2;
+    short int rand1, rand2;
     bool check = false;
     do
     {
@@ -47,12 +45,10 @@ void FillMatrix(int map[vertical][horizontal], int *score)
                 map[cont][cont2] = ' ';
         }
     }
-    for (short int cont = 0; cont < horizontal; cont++)
-        body[cont][cont] = 0;
     CreateFood(map);
 }
 
-void SnakeBody(int map[vertical][horizontal], int *x, int *y, int *score)
+void SnakeBody(int map[vertical][horizontal], int xx[], int yy[], int *x, int *y, int *score)
 {
     if (*score > 0)
     {
@@ -72,13 +68,13 @@ void SnakeBody(int map[vertical][horizontal], int *x, int *y, int *score)
     }
 }
 
-void CollisionUp(int map[vertical][horizontal], int *x, int *y, int *Life, int *score)
+void CollisionUp(int map[vertical][horizontal], int xx[], int yy[], int *x, int *y, int *Life, int *score, int *lim, int *highScore)
 {
     switch (map[*y - 1][*x])
     {
     case ' ':
         map[*y - 1][*x] = '^';
-        SnakeBody(map, x, y, score);
+        SnakeBody(map, xx, yy, x, y, score);
         --*y;
         break;
 
@@ -88,12 +84,14 @@ void CollisionUp(int map[vertical][horizontal], int *x, int *y, int *Life, int *
         xx[*score] = *x;
         yy[*score] = *y;
         ++*score;
-        SnakeBody(map, x, y, score);
+        SnakeBody(map, xx, yy, x, y, score);
         --*y;
         break;
 
     default:
-        DecreaseLife(map, Life);
+        if (*score > *highScore)
+            *highScore = *score;
+        DecreaseLife(map, Life, lim);
         map[vertical / 2][horizontal / 2] = '^';
         *x = horizontal / 2;
         *y = vertical / 2;
@@ -102,14 +100,14 @@ void CollisionUp(int map[vertical][horizontal], int *x, int *y, int *Life, int *
     }
 }
 
-void CollisionDown(int map[vertical][horizontal], int *x, int *y, int *Life, int *score)
+void CollisionDown(int map[vertical][horizontal], int xx[], int yy[], int *x, int *y, int *Life, int *score, int *lim, int *highScore)
 {
     switch (map[*y + 1][*x])
     {
     case ' ':
         map[*y + 1][*x] = 'v';
         map[*y][*x] = ' ';
-        SnakeBody(map, x, y, score);
+        SnakeBody(map, xx, yy, x, y, score);
         ++*y;
         break;
 
@@ -119,12 +117,14 @@ void CollisionDown(int map[vertical][horizontal], int *x, int *y, int *Life, int
         xx[*score] = *x;
         yy[*score] = *y;
         ++*score;
-        SnakeBody(map, x, y, score);
+        SnakeBody(map, xx, yy, x, y, score);
         ++*y;
         break;
 
     default:
-        DecreaseLife(map, Life);
+        if (*score > *highScore)
+            *highScore = *score;
+        DecreaseLife(map, Life, lim);
         map[vertical / 2][horizontal / 2] = 'v';
         *x = horizontal / 2;
         *y = vertical / 2;
@@ -133,14 +133,14 @@ void CollisionDown(int map[vertical][horizontal], int *x, int *y, int *Life, int
     }
 }
 
-void CollisionLeft(int map[vertical][horizontal], int *x, int *y, int *Life, int *score)
+void CollisionLeft(int map[vertical][horizontal], int xx[], int yy[], int *x, int *y, int *Life, int *score, int *lim, int *highScore)
 {
     switch (map[*y][*x - 1])
     {
     case ' ':
         map[*y][*x - 1] = '<';
         map[*y][*x] = ' ';
-        SnakeBody(map, x, y, score);
+        SnakeBody(map, xx, yy, x, y, score);
         --*x;
         break;
 
@@ -150,12 +150,14 @@ void CollisionLeft(int map[vertical][horizontal], int *x, int *y, int *Life, int
         xx[*score] = *x;
         yy[*score] = *y;
         ++*score;
-        SnakeBody(map, x, y, score);
+        SnakeBody(map, xx, yy, x, y, score);
         --*x;
         break;
 
     default:
-        DecreaseLife(map, Life);
+        if (*score > *highScore)
+            *highScore = *score;
+        DecreaseLife(map, Life, lim);
         map[*y][*x - 1] = '|';
         map[vertical / 2][horizontal / 2] = '<';
         *x = horizontal / 2;
@@ -165,14 +167,14 @@ void CollisionLeft(int map[vertical][horizontal], int *x, int *y, int *Life, int
     }
 }
 
-void CollisionRight(int map[vertical][horizontal], int *x, int *y, int *Life, int *score)
+void CollisionRight(int map[vertical][horizontal], int xx[], int yy[], int *x, int *y, int *Life, int *score, int *lim, int *highScore)
 {
     switch (map[*y][*x + 1])
     {
     case ' ':
         map[*y][*x + 1] = '>';
         map[*y][*x] = ' ';
-        SnakeBody(map, x, y, score);
+        SnakeBody(map, xx, yy, x, y, score);
         ++*x;
         break;
 
@@ -182,12 +184,14 @@ void CollisionRight(int map[vertical][horizontal], int *x, int *y, int *Life, in
         xx[*score] = *x;
         yy[*score] = *y;
         ++*score;
-        SnakeBody(map, x, y, score);
+        SnakeBody(map, xx, yy, x, y, score);
         ++*x;
         break;
 
     default:
-        DecreaseLife(map, Life);
+        if (*score > *highScore)
+            *highScore = *score;
+        DecreaseLife(map, Life, lim);
         map[*y][*x - 1] = '|';
         map[vertical / 2][horizontal / 2] = '<';
         *x = horizontal / 2;
@@ -197,13 +201,13 @@ void CollisionRight(int map[vertical][horizontal], int *x, int *y, int *Life, in
     }
 }
 
-void PrintInterface(int map[vertical][horizontal], int life, int score)
+void PrintInterface(int map[vertical][horizontal], short int life, short int score, short int highScore)
 {
     fflush(stdout);
-    printf("Life: %d\t\tScore: %d\n\n", life, score);
-    for (int cont = 0; cont < vertical; cont++)
+    printf("Life: %d  Score: %d  Highest Score: %d\n\n", life, score, highScore);
+    for (short int cont = 0; cont < vertical; cont++)
     {
-        for (int cont2 = 0; cont2 < horizontal; cont2++)
+        for (short int cont2 = 0; cont2 < horizontal; cont2++)
         {
             printf("%c", map[cont][cont2]);
         }
@@ -211,9 +215,10 @@ void PrintInterface(int map[vertical][horizontal], int life, int score)
     }
 }
 
-void Input(int map[vertical][horizontal], int *x, int *y, int *life, int *score, int *lim, int *buffer)
+void Input(int map[vertical][horizontal], int xx[], int yy[], int *x, int *y, int *life, int *score, int *lim, int *buffer, int *highScore)
 {
     short int input;
+    int slowdown = 200000 / (vertical * horizontal);
     input = tolower(getch());
     if (input == 'w' || input == 'a' || input == 's' || input == 'd')
     {
@@ -222,23 +227,23 @@ void Input(int map[vertical][horizontal], int *x, int *y, int *life, int *score,
     }
     if (*lim == 'w' && *buffer != 's')
     {
-        CollisionUp(map, x, y, life, score);
-        usleep(200000 - (*score * 1000));
+        CollisionUp(map, xx, yy, x, y, life, score, lim, highScore);
+        usleep(200000 - (slowdown * *score));
     }
     else if (*lim == 'a' && *buffer != 'd')
     {
-        CollisionLeft(map, x, y, life, score);
-        usleep(160000 - (*score * 1000));
+        CollisionLeft(map, xx, yy, x, y, life, score, lim, highScore);
+        usleep(200000 - (slowdown * *score));
     }
     else if (*lim == 's' && *buffer != 'w')
     {
-        CollisionDown(map, x, y, life, score);
-        usleep(200000 - (*score * 1000));
+        CollisionDown(map, xx, yy, x, y, life, score, lim, highScore);
+        usleep(200000 - (slowdown * *score));
     }
     else if (*lim == 'd' && *buffer != 'a')
     {
-        CollisionRight(map, x, y, life, score);
-        usleep(160000 - (*score * 1000));
+        CollisionRight(map, xx, yy, x, y, life, score, lim, highScore);
+        usleep(200000 - (slowdown * *score));
     }
     else
     {
@@ -251,14 +256,15 @@ void Game()
     int map[vertical][horizontal];
     int x = horizontal / 2;
     int y = vertical / 2;
-    int life = 3, score, lim = 'd', buffer = 50000;
+    int life = 3, score, lim = 'd', buffer = 50000, highScore = 1;
+    int xx[(horizontal - 1) * (vertical - 1)], yy[(horizontal - 1) * (vertical - 1)];
     FillMatrix(map, &score);
     map[vertical / 2][horizontal / 2] = '>';
     for (;;)
     {
         system("clear");
-        PrintInterface(map, life, score);
-        Input(map, &x, &y, &life, &score, &lim, &buffer);
+        PrintInterface(map, life, score, highScore);
+        Input(map, xx, yy, &x, &y, &life, &score, &lim, &buffer, &highScore);
         if (life == 0)
             break;
     }
