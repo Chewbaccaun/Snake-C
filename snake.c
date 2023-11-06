@@ -1,8 +1,8 @@
 #include "lib.h"
 #define horizontal 100
 #define vertical 30
-int xx, yy, sore = 1;
-bool come;
+int body[horizontal][horizontal];
+int xx[horizontal], yy[horizontal];
 
 void DecreaseLife(int map[vertical][horizontal], int *life)
 {
@@ -34,7 +34,7 @@ void CreateFood(int map[vertical][horizontal])
 
 void FillMatrix(int map[vertical][horizontal], int *score)
 {
-    *score = 0;
+    *score = 1;
     for (short int cont = 0; cont < vertical; cont++)
     {
         for (short int cont2 = 0; cont2 < horizontal; cont2++)
@@ -47,12 +47,29 @@ void FillMatrix(int map[vertical][horizontal], int *score)
                 map[cont][cont2] = ' ';
         }
     }
+    for (short int cont = 0; cont < horizontal; cont++)
+        body[cont][cont] = 0;
     CreateFood(map);
 }
 
 void SnakeBody(int map[vertical][horizontal], int *x, int *y, int *score)
 {
-
+    if (*score > 0)
+    {
+        for (short int cont = *score - 1; cont > 0; cont--)
+        {
+            xx[cont] = xx[cont - 1];
+            yy[cont] = yy[cont - 1];
+        }
+        xx[0] = *x;
+        yy[0] = *y;
+        map[*y][*x] = '@';
+        map[yy[*score - 1]][xx[*score - 1]] = ' ';
+    }
+    else
+    {
+        map[*y][*x] = ' ';
+    }
 }
 
 void CollisionUp(int map[vertical][horizontal], int *x, int *y, int *Life, int *score)
@@ -60,20 +77,16 @@ void CollisionUp(int map[vertical][horizontal], int *x, int *y, int *Life, int *
     switch (map[*y - 1][*x])
     {
     case ' ':
-        come = false;
         map[*y - 1][*x] = '^';
-        map[*y][*x] = ' ';
         SnakeBody(map, x, y, score);
         --*y;
         break;
 
     case '*':
-    come = true;
         map[*y - 1][*x] = '^';
-        map[*y][*x] = ' ';
         CreateFood(map);
-        xx = *x;
-        yy = *y;
+        xx[*score] = *x;
+        yy[*score] = *y;
         ++*score;
         SnakeBody(map, x, y, score);
         --*y;
@@ -94,7 +107,6 @@ void CollisionDown(int map[vertical][horizontal], int *x, int *y, int *Life, int
     switch (map[*y + 1][*x])
     {
     case ' ':
-    come = false;
         map[*y + 1][*x] = 'v';
         map[*y][*x] = ' ';
         SnakeBody(map, x, y, score);
@@ -102,12 +114,10 @@ void CollisionDown(int map[vertical][horizontal], int *x, int *y, int *Life, int
         break;
 
     case '*':
-    come = true;
         map[*y + 1][*x] = 'v';
-        map[*y][*x] = ' ';
         CreateFood(map);
-        xx = *x;
-        yy = *y;
+        xx[*score] = *x;
+        yy[*score] = *y;
         ++*score;
         SnakeBody(map, x, y, score);
         ++*y;
@@ -128,7 +138,6 @@ void CollisionLeft(int map[vertical][horizontal], int *x, int *y, int *Life, int
     switch (map[*y][*x - 1])
     {
     case ' ':
-    come = false;
         map[*y][*x - 1] = '<';
         map[*y][*x] = ' ';
         SnakeBody(map, x, y, score);
@@ -136,12 +145,10 @@ void CollisionLeft(int map[vertical][horizontal], int *x, int *y, int *Life, int
         break;
 
     case '*':
-    come = true;
         map[*y][*x - 1] = '<';
-        map[*y][*x] = ' ';
         CreateFood(map);
-        xx = *x;
-        yy = *y;
+        xx[*score] = *x;
+        yy[*score] = *y;
         ++*score;
         SnakeBody(map, x, y, score);
         --*x;
@@ -163,7 +170,6 @@ void CollisionRight(int map[vertical][horizontal], int *x, int *y, int *Life, in
     switch (map[*y][*x + 1])
     {
     case ' ':
-    come = false;
         map[*y][*x + 1] = '>';
         map[*y][*x] = ' ';
         SnakeBody(map, x, y, score);
@@ -171,12 +177,10 @@ void CollisionRight(int map[vertical][horizontal], int *x, int *y, int *Life, in
         break;
 
     case '*':
-    come = true;
         map[*y][*x + 1] = '>';
-        map[*y][*x] = ' ';
         CreateFood(map);
-        xx = *x;
-        yy = *y;
+        xx[*score] = *x;
+        yy[*score] = *y;
         ++*score;
         SnakeBody(map, x, y, score);
         ++*x;
@@ -256,7 +260,7 @@ void Game()
         PrintInterface(map, life, score);
         Input(map, &x, &y, &life, &score, &lim, &buffer);
         if (life == 0)
-        break;
+            break;
     }
     system("clear");
     printf("Game Over.\n\n");
@@ -275,6 +279,7 @@ int main()
         Game();
         break;
     default:
+        system("clear");
         printf("Exiting.");
         break;
     }
