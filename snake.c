@@ -201,10 +201,10 @@ void CollisionRight(int map[vertical][horizontal], int xx[], int yy[], int *x, i
     }
 }
 
-void PrintInterface(int map[vertical][horizontal], short int life, short int score, short int highScore)
+void PrintInterface(int map[vertical][horizontal], int *life, int *score, int *highScore)
 {
     fflush(stdout);
-    printf("Life: %d  Score: %d  Highest Score: %d\n\n", life, score, highScore);
+    printf("Life: %d  Score: %d  Highest Score: %d\n\n", *life, *score, *highScore);
     for (short int cont = 0; cont < vertical; cont++)
     {
         for (short int cont2 = 0; cont2 < horizontal; cont2++)
@@ -228,21 +228,25 @@ void Input(int map[vertical][horizontal], int xx[], int yy[], int *x, int *y, in
     if (*lim == 'w' && *buffer != 's')
     {
         CollisionUp(map, xx, yy, x, y, life, score, lim, highScore);
+        PrintInterface(map, life, score, highScore);
         usleep(200000 - (slowdown * *score));
     }
     else if (*lim == 'a' && *buffer != 'd')
     {
         CollisionLeft(map, xx, yy, x, y, life, score, lim, highScore);
+        PrintInterface(map, life, score, highScore);
         usleep(200000 - (slowdown * *score));
     }
     else if (*lim == 's' && *buffer != 'w')
     {
         CollisionDown(map, xx, yy, x, y, life, score, lim, highScore);
+        PrintInterface(map, life, score, highScore);
         usleep(200000 - (slowdown * *score));
     }
     else if (*lim == 'd' && *buffer != 'a')
     {
         CollisionRight(map, xx, yy, x, y, life, score, lim, highScore);
+        PrintInterface(map, life, score, highScore);
         usleep(200000 - (slowdown * *score));
     }
     else
@@ -263,7 +267,6 @@ void Game()
     for (;;)
     {
         system("clear");
-        PrintInterface(map, life, score, highScore);
         Input(map, xx, yy, &x, &y, &life, &score, &lim, &buffer, &highScore);
         if (life == 0)
             break;
