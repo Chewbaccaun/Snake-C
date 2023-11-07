@@ -203,7 +203,7 @@ void CollisionRight(int map[vertical][horizontal], int xx[], int yy[], int *x, i
 
 void PrintInterface(int map[vertical][horizontal], int *life, int *score, int *highScore)
 {
-    fflush(stdout);
+    //fflush(stdout);
     printf("Life: %d  Score: %d  Highest Score: %d\n\n", *life, *score, *highScore);
     for (short int cont = 0; cont < vertical; cont++)
     {
@@ -218,7 +218,7 @@ void PrintInterface(int map[vertical][horizontal], int *life, int *score, int *h
 void Input(int map[vertical][horizontal], int xx[], int yy[], int *x, int *y, int *life, int *score, int *lim, int *buffer, int *highScore)
 {
     short int input;
-    int slowdown = 200000 / (vertical * horizontal);
+    int slowdown = 400000 / ((vertical - 1) * (horizontal - 1));
     input = tolower(getch());
     if (input == 'w' || input == 'a' || input == 's' || input == 'd')
     {
@@ -229,25 +229,25 @@ void Input(int map[vertical][horizontal], int xx[], int yy[], int *x, int *y, in
     {
         CollisionUp(map, xx, yy, x, y, life, score, lim, highScore);
         PrintInterface(map, life, score, highScore);
-        usleep(200000 - (slowdown * *score));
+        usleep(450000 - (slowdown * *score));
     }
     else if (*lim == 'a' && *buffer != 'd')
     {
         CollisionLeft(map, xx, yy, x, y, life, score, lim, highScore);
         PrintInterface(map, life, score, highScore);
-        usleep(200000 - (slowdown * *score));
+        usleep(450000 - (slowdown * *score));
     }
     else if (*lim == 's' && *buffer != 'w')
     {
         CollisionDown(map, xx, yy, x, y, life, score, lim, highScore);
         PrintInterface(map, life, score, highScore);
-        usleep(200000 - (slowdown * *score));
+        usleep(450000 - (slowdown * *score));
     }
     else if (*lim == 'd' && *buffer != 'a')
     {
         CollisionRight(map, xx, yy, x, y, life, score, lim, highScore);
         PrintInterface(map, life, score, highScore);
-        usleep(200000 - (slowdown * *score));
+        usleep(450000 - (slowdown * *score));
     }
     else
     {
